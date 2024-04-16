@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .calculator {
+            width: 300px;
+            margin-right: 20px;
+        }
+        .screen {
+            border: 1px solid #ccc;
+            height: 50px;
+            padding: 5px;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+        .buttons button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .tokens {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+        .tree-image {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <div class="screen" id="screen"></div>
+            <div class="buttons">
+                <button onclick="appendToScreen('7')">7</button>
+                <button onclick="appendToScreen('8')">8</button>
+                <button onclick="appendToScreen('9')">9</button>
+                <button onclick="appendToScreen('+')">+</button>
+                <button onclick="appendToScreen('4')">4</button>
+                <button onclick="appendToScreen('5')">5</button>
+                <button onclick="appendToScreen('6')">6</button>
+                <button onclick="appendToScreen('-')">-</button>
+                <button onclick="appendToScreen('1')">1</button>
+                <button onclick="appendToScreen('2')">2</button>
+                <button onclick="appendToScreen('3')">3</button>
+                <button onclick="appendToScreen('*')">*</button>
+                <button onclick="appendToScreen('0')">0</button>
+                <button onclick="appendToScreen('.')">.</button>
+                <button onclick="appendToScreen('/')">/</button>
+                <button onclick="appendToScreen('(')">(</button>
+                <button onclick="appendToScreen(')')">)</button>
+                <button onclick="clearScreen()">C</button>
+                <button onclick="calculateResult()">=</button>
+            </div>
+        </div>
+        <div class="tokens" id="tokens"></div>
+        <div class="tree-image" id="tree-image"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function appendToScreen(value) {
+            $('#screen').append(value);
+        }
+
+        function clearScreen() {
+            $('#screen').empty();
+            $('#tokens').empty();
+            $('#tree-image').empty();
+        }
+
+        function calculateResult() {
+            var expression = $('#screen').text();
+            $.ajax({
+                type: 'POST',
+                url: '/calculate',
+                data: { expression: expression },
+                success: function(response) {
+                    if ('error' in response) {
+                        $('#screen').text('Error: ' + response.error);
+                        $('#tokens').empty();
+                        $('#tree-image').empty();
+                    } else {
+                        $('#screen').text(response.result);
+                        var tokensHTML = '<h3>Resultado Léxico:</h3>';
+                        response.tokens.forEach(function(token) {
+                            tokensHTML += '<div>Tipo: ' + token.type + ', Valor: ' + token.value + ', Posición: ' + token.position + '</div>';
+                        });
+                        $('#tokens').html(tokensHTML);
+                        var imageHTML = '<h3>Árbol de Derivación:</h3>';
+                        imageHTML += '<img src="/static/expression_tree.png" alt="Expression Tree">';
+                        $('#tree-image').html(imageHTML);
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
